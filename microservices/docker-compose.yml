@@ -1,0 +1,99 @@
+version: '3.7'
+
+services:
+  authentication_service:
+    build: ./authentication-service
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    volumes: 
+      - ./authentication-service/:/app/
+    ports:
+      - 8001:8000
+    environment:
+      - DATABASE_URI=postgresql://postgres:postgres@authentication_db/authentication_db_dev
+
+  authentication_db:
+    image: postgres:12.1-alpine
+    volumes:
+      - postgres_data_authentication:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=
+      - POSTGRES_DB=authentication_db_dev
+  
+  movie_service:
+    build: ./movie-service
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    volumes:
+      - ./movie-service/:/app/
+    ports: 
+      - 8002:8000
+    environment:
+      - DATABASE_URI=postgresql://postgres:postgres@movie_db/movie_db_dev
+      - AUTHENTICATION_SERVICE_HOST_URL=http://authentication_service:8000/api/v1/authentication/
+      - RECOMMENDATION_SERVICE_HOST_URL=http://recommendation_service:8000/api/v1/recommendation/
+      - USERGROUP_SERVICE_HOST_URL=http://usergroup_service:8000/api/v1/usergroup/
+
+  movie_db:
+    image: postgres:12.1-alpine
+    volumes:
+      - postgres_data_movie:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=
+      - POSTGRES_DB=movie_db_dev
+
+  recommendation_service:
+    build: ./recommendation-service
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    volumes:
+      - ./recommendation-service/:/app/
+    ports: 
+      - 8003:8000
+    environment:
+      - DATABASE_URI=postgresql://postgres:postgres@recommendation_db/recommendation_db_dev
+
+  recommendation_db:
+    image: postgres:12.1-alpine
+    volumes:
+      - postgres_data_recommendation:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=
+      - POSTGRES_DB=recommendation_db_dev
+
+  usergroup_service:
+    build: ./usergroup-service
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    volumes:
+      - ./usergroup-service/:/app/
+    ports: 
+      - 8004:8000
+    environment:
+      - DATABASE_URI=postgresql://postgres:postgres@usergroup_db/usergroup_db_dev
+
+  usergroup_db:
+    image: postgres:12.1-alpine
+    volumes:
+      - postgres_data_usergroup:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=
+      - POSTGRES_DB=usergroup_db_dev
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx_config.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - authentication_service
+      - movie_service
+      - recommendation_service
+      - usergroup_service
+
+volumes:
+  postgres_data_movie:
+  postgres_data_usergroup:
+  postgres_data_authentication:
+  postgres_data_recommendation:
