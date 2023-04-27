@@ -1,7 +1,7 @@
 
 import os
 
-from sqlalchemy import (Column, Integer, MetaData, String, Table,
+from sqlalchemy import (Column, ForeignKey, Integer, MetaData, PrimaryKeyConstraint, String, Table,
                         create_engine, ARRAY)
 
 from databases import Database
@@ -16,6 +16,21 @@ usergroup = Table(
     metadata,
     Column('id', Integer, primary_key=True),
     Column('name', String(50)),
+)
+
+group = Table(
+    'group',
+    metadata,
+    Column('id', Integer, primary_key=True),
+    Column('name', String(50)),
+)
+
+user_group = Table(
+    'user_group',
+    metadata,
+    Column('id_user', Integer, nullable=False),
+    Column('id_group', Integer, ForeignKey('group.id'), nullable=False),
+    PrimaryKeyConstraint('id_user', 'id_group')
 )
 
 database = Database(DATABASE_URI)

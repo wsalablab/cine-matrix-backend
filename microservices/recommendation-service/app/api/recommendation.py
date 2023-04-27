@@ -6,7 +6,7 @@ from app.api import db_manager
 
 recommendation = APIRouter()
 
-@recommendation.post('/', response_model=RecommendationOut, status_code=201)
+@recommendation.post('/recommendation/', response_model=RecommendationOut, status_code=201)
 async def create_recommendation(payload: RecommendationIn):
     recommendation_id = await db_manager.add_recommendation(payload)
     response = {
@@ -15,7 +15,7 @@ async def create_recommendation(payload: RecommendationIn):
     }
     return response
 
-@recommendation.get('/{id}/', response_model=RecommendationOut)
+@recommendation.get('/recommendation/{id}/', response_model=RecommendationOut)
 async def get_recommendation(id: int):
     recommendation = await db_manager.get_recommendation(id)
     if not recommendation:

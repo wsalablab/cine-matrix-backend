@@ -9,3 +9,16 @@ class UsergroupOut(UsergroupIn):
 
 class UsergroupUpdate(UsergroupIn):
     name: Optional[str] = None
+
+class GroupIn(BaseModel):
+    name: str
+
+class GroupOut(GroupIn):
+    id: int
+
+class GroupUpdate(GroupIn):
+    name: Optional[str] = None
+
+class UserGroup(BaseModel):
+    id_group: int
+    id_user: int
