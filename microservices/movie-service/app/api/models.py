@@ -30,7 +30,6 @@ class MovieUpdate(BaseModel):
     synopsis: Optional[str] = None
     
 
-
 class GenreIn(BaseModel):
     id: int
     name: str
@@ -49,3 +48,34 @@ class MovieGenreUpdate(MovieGenreIn):
 
 class MovieSearch(BaseModel):
     title: str
+
+
+class GenreInNew(BaseModel):
+    id: int
+    name: str
+
+class MovieInGenreNew(BaseModel):
+    id: int
+    title: str
+    poster_path: Optional[str]
+    overview: str
+    genre_ids: List[int]
+
+    # Méthode pour récupérer les IDs de genres d'un film
+    def get_genre_ids(self) -> List[int]:
+        return self.genre_ids
+    
+class LastMovieInGenre(BaseModel):
+    id: int
+    title: str
+    poster_path: Optional[str]
+    overview: str
+    genres: List
+
+    # Méthode pour récupérer les IDs de genres d'un film
+    def get_genre_ids(self) -> List[int]:
+        return self.genres
+
+
+class DateInDB(BaseModel):
+    date: str
