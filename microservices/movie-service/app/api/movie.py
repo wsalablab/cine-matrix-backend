@@ -224,6 +224,10 @@ async def create_movie_genre(payload: MovieGenreIn):
 async def get_movie_genres(id_movie: int):
     return await db_manager.get_movie_genres(id_movie)
 
+@movie.get('/movies_by_genre/{id_genre}/', response_model=List[MovieGenreIn])
+async def get_movie_genres(id_genre: int):
+    return await db_manager.get_movie_genre_by_genre(id_genre)
+
 @movie.delete('/movie_genre/{id_movie}/{id_genre}/')
 async def delete_movie_genre(id_movie: int, id_genre: int):
     movie_genre = await db_manager.get_movie_genre(id_movie, id_genre)

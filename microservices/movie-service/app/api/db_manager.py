@@ -65,6 +65,10 @@ async def get_all_genresss():
     query = genre.select()
     return await database.fetch_all(query=query)
 
+async def get_movie_genre_by_genre(id_genre) -> List[MovieGenreIn]:
+    query = movie_genre.select(movie_genre.c.id_genre==id_genre)
+    return await database.fetch_all(query=query)
+
 async def get_all_movie_genresss():
     query = movie_genre.select()
     return await database.fetch_all(query=query)
