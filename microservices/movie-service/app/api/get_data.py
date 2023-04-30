@@ -7,8 +7,7 @@ from models import MovieInGenre, GenreIn
 from databases import Database
 # from app.api import db_manager
 from time import strftime
-# pour récuperer la date du jour 
-print("TIME : " + strftime("%Y/%m/%d"))
+
 
 # Définition des URLs de l'API et de la clé API
 API_key = '2a35719d0d9b5e5907c67db8eb374dff'
@@ -161,15 +160,33 @@ def export_data_movie_to_json(movie):
     with open('./assets/genre_data.json', 'w') as f:
         json.dump(all_genres.to_dict(orient='records'), f)
 
+def check_date(date, date_actuel):
+    if date < date_actuel:
+        return True
+    else:
+        return False
 
+def chech_movie_update(date, movies):
+    # pour récuperer la date du jour 
+    print("TIME : " + strftime("%Y/%m/%d"))
+    date_actuel = strftime("%Y/%m/%d")
+    
+    if check_date(date, date_actuel):
+        # Récupération des ids des dernier films dans la base de données 
+        new_id = check_movie_ids_not_in_data(movies, get_last_movie_id(Last_MOVIE_URL))
 
+        # Récupération des données de films à partir leur id dans l'API 
+        data = get_movie_data_api_by_id(API_GET_MOVIE_URL, new_id)    
 
-#async def add_movie(payload: MovieInGenreNew):
-#    query = movies.insert().values(**payload.dict())
-#    return await database.execute(query=query)
+        # Ajout des données de films dans la base de données
+        #for movie in data:
+        #    db_manager.add_movie(movie)    
+        date = date_actuel
+
 
 if __name__ == '__main__':
     movies = get_movie_data()
+    chech_movie_update("2022/01/04", movies)
     
     # -------------------- TODO :: Ajout des données de films dans la base de données  --------------------
     # J'ai commenté l'import de add_manager

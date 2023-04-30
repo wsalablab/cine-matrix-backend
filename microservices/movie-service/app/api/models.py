@@ -4,13 +4,13 @@ from typing import List, Optional
 class MovieIn(BaseModel):
     id_tdmb: int
     title: str
-    poster: str
+    poster: Optional[str]
     synopsis: str
 
 class MovieInGenre(BaseModel):
     id_tdmb: int
     title: str
-    poster: str
+    poster: Optional[str]
     synopsis: str
     genres: List[int]
 
