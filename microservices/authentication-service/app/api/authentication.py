@@ -3,25 +3,9 @@ from typing import List
 
 from app.api.models import UserOut, UserIn
 from app.api import db_manager
+from app.api import service
 
 authentication = APIRouter()
-
-#@authentication.post('/', response_model=AuthenticationOut, status_code=201)
-#async def create_authentication(payload: AuthenticationIn):
-#    authentication_id = await db_manager.add_authentication(payload)
-#    response = {
-#        'id': authentication_id,
-#        **payload.dict()
-#    }
-#    return response
-
-#@authentication.get('/{id}/', response_model=AuthenticationOut)
-#async def get_authentication(id: int):
-#    authentication = await db_manager.get_authentication(id)
-#    if not authentication:
-#        raise HTTPException(status_code=404, detail="Authentication not found")
-#    return authentication
-
 
 @authentication.post('/user/', response_model=int, status_code=201)
 async def create_user(payload: UserIn):
@@ -41,9 +25,19 @@ async def delete_user(id: int):
     user = await db_manager.get_user(id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    service.delete_movies_user(id)
+    service.delete_groups_user(id)
     await db_manager.delete_user(id)
 
 #http://localhost:8080/api/v1/authentication/users/
 @authentication.get('/users/', response_model=List[UserOut])
 async def get_users():
     return await db_manager.get_all_utilisateurs()
+
+@authentication.get('/test/')
+async def test_usg():
+    return service.test_usergroup()
+
+@authentication.get('/testmovie/')
+async def test_movie():
+    return service.test_movie()

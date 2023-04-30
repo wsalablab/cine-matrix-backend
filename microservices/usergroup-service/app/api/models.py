@@ -20,5 +20,5 @@ class GroupUpdate(GroupIn):
     name: Optional[str] = None
 
 class UserGroup(BaseModel):
-    id_group: int
     id_user: int
+    id_group: int

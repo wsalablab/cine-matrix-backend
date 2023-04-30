@@ -49,3 +49,15 @@ class MovieGenreUpdate(MovieGenreIn):
 
 class MovieSearch(BaseModel):
     title: str
+
+class AppreciationIn(BaseModel):
+    name: str
+
+class Appreciation(BaseModel):
+    id: int
+    name: str
+
+class MovieWatch(BaseModel):
+    id_user: int
+    id_movie: int
+    id_appreciation: int

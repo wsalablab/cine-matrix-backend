@@ -1,7 +1,7 @@
 
 import os
 
-from sqlalchemy import (Column, ForeignKey, Integer, MetaData, PrimaryKeyConstraint, String, Table,
+from sqlalchemy import (Column, ForeignKey, Integer, MetaData, PrimaryKeyConstraint, String, Table, UniqueConstraint,
                         create_engine, ARRAY)
 
 from databases import Database
@@ -23,6 +23,7 @@ group = Table(
     metadata,
     Column('id', Integer, primary_key=True),
     Column('name', String(50)),
+    UniqueConstraint('name')
 )
 
 user_group = Table(

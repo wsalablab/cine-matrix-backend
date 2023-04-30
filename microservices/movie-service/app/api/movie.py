@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 
-from app.api.models import MovieIn, MovieUpdate, GenreIn, GenreUpdate, MovieGenreIn, MovieGenreUpdate, MovieInGenre, MovieInUpdate, MovieSearch
+from app.api.models import AppreciationIn ,MovieIn, MovieUpdate, GenreIn, GenreUpdate, MovieGenreIn, MovieGenreUpdate, MovieInGenre, MovieInUpdate, MovieSearch, MovieWatch, Appreciation
 from app.api import db_manager
+from app.api import service
 
 movie = APIRouter()
 
@@ -188,6 +189,13 @@ async def get_genre(id: int):
         raise HTTPException(status_code=404, detail="Genre not found")
     return genre
 
+@movie.post('/genre/{id}/')
+async def update_genre(id: int, payload: GenreUpdate):
+    genre = await db_manager.get_genre(id)
+    if not genre:
+        raise HTTPException(status_code=404, detail="Genre not found")
+    db_manager.update_genre(id, payload)
+
 @movie.delete('/genre/{id}/')
 async def delete_genre(id: int):
     genre = await db_manager.get_genre(id)
@@ -227,3 +235,76 @@ async def delete_movie_genre(id_movie: int, id_genre: int):
 async def get_movie_genresss():
     return await db_manager.get_all_movie_genresss()
 
+@movie.get('/test/')
+async def test_usg():
+    return True
+
+@movie.post('/appreciation/')
+async def add_appreciation(payload: AppreciationIn):
+    appreciation = await db_manager.get_appreciation_by_name(payload.name)
+    if appreciation:
+        raise HTTPException(status_code=404, detail="Appreciation name already used")
+    appreciation_id = await db_manager.add_appreciation(payload)
+    response = {
+        'id': appreciation_id,
+        **payload.dict()
+    }
+    return response
+
+@movie.get('/appreciation/{id}/', response_model=Appreciation)
+async def get_appreciation(id: int):
+    appreciation = await db_manager.get_appreciation(id)
+    if not appreciation:
+        raise HTTPException(status_code=404, detail="Appreciation not found")
+    return appreciation
+
+@movie.delete('/appreciation/{id}/')
+async def delete_appreciation(id: int):
+    appreciation = await db_manager.get_appreciation(id)
+    if not appreciation:
+        raise HTTPException(status_code=404, detail="Appreciation not found")
+    return await db_manager.delete_appreciation(id)
+
+@movie.get('/movie_watch_user/{id}', response_model=List[MovieWatch])
+async def get_movie_watch_by_user(id: int):
+    movies_watched = await db_manager.get_movies_watched_by_user(id)
+    if movies_watched is None:
+        raise HTTPException(status_code=404, detail="Failed to retrieve movies watched")
+    return movies_watched
+
+@movie.delete('/movie_watch/{id_movie}/{id_user}/')
+async def delete_movie_watch(id_movie: int, id_user: int):
+    movie_watch = await db_manager.get_movie_watch(id_movie=id_movie, id_user=id_user)
+    if not movie_watch:
+        raise HTTPException(status_code=404, detail="Movie watched not found")
+    return await db_manager.delete_movie_watch(id_user=id_user, id_movie=id_movie)
+
+@movie.get('/appreciations/', response_model=List[Appreciation])
+async def get_appreciations():
+    appreciations: List[Appreciation] = await db_manager.get_all_appreciation()
+    if appreciations is None:
+        raise HTTPException(status_code=404, detail="Failed to retrieve appreciations")
+    return appreciations
+
+@movie.get('/movies_watched/', response_model=List[MovieWatch])
+async def get_movies_watched():
+    movies_watched: List[MovieWatch] = await db_manager.get_all_movie_watch()
+    if movies_watched is None:
+        raise HTTPException(status_code=404, detail="Failed to retrieve movies watched")
+    return movies_watched
+
+@movie.post('/movie_watch/')
+async def add_movie_watch(payload: MovieWatch):
+    movie = await db_manager.get_movie(payload.id_movie)
+    if not movie :
+        raise HTTPException(status_code=404, detail="Failed to retrieve movie")
+    if not service.is_user_present(payload.id_user):
+        raise HTTPException(status_code=404, detail="Failed to retrieve user")
+    appreciation = await db_manager.get_appreciation(id=payload.id_appreciation)
+    if not appreciation:
+        raise HTTPException(status_code=404, detail="Failed to retrieve appreciation")
+    
+    movie_watch = await db_manager.get_movie_watch(id_user=payload.id_user, id_movie=payload.id_movie)
+    if not movie_watch :
+        await db_manager.add_movie_watch(payload)
+    

@@ -1,34 +1,16 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 
-from app.api.models import UserGroup, UsergroupOut, UsergroupIn, UsergroupUpdate, GroupOut, GroupIn
+from app.api.models import UserGroup, GroupOut, GroupIn
 from app.api import db_manager
 from app.api.service import is_user_present
 
 usergroup = APIRouter()
 
-@usergroup.post('/usergroup/', response_model=UsergroupOut, status_code=201)
-async def create_usergroup(payload: UsergroupIn):
-    usergroup_id = await db_manager.add_usergroup(payload)
-    response = {
-        'id': usergroup_id,
-        **payload.dict()
-    }
-    return response
-
-@usergroup.get('/usergroup/{id}/', response_model=UsergroupOut)
-async def get_usergroup(id: int):
-    usergroup = await db_manager.get_usergroup(id)
-    if not usergroup:
-        raise HTTPException(status_code=404, detail="usergroup not found")
-    return usergroup
-
-#@usergroup.get('/movie_genres/', response_model=List[MovieGenreIn])
-#async def get_movie_genresss():
-#    return await db_manager.get_all_movie_genresss()
-
 @usergroup.post('/group/', response_model=GroupOut, status_code=201)
 async def create_group(payload: GroupIn):
+    if await db_manager.isGroupNameUsed(payload.name) :
+        raise HTTPException(status_code=403, detail="Group name already used")
     group_id = await db_manager.add_group(payload)
     response = {
         'id': group_id,
@@ -51,22 +33,53 @@ async def get_groups():
         raise HTTPException(status_code=404, detail="Groups not found")
     return groups
 
-@usergroup.get('/test/{id}/', response_model=GroupOut)
-async def get_test(id: int):
-    if (is_user_present(id)) :
-        new_cast = GroupOut(id=1, name="John Doe")
-        return new_cast
-    else :
-        new_cast = GroupOut(id=2, name="John Wick")
-        return new_cast
-        
-@usergroup.post('/user-group/', response_model=GroupOut)
-async def set_usergroup(payload: UserGroup):
-    if(is_user_present(payload.id_user) and db_manager.isGroupPresent(payload.id_group)) :
-        new_cast = GroupOut(id=1, name="John Doe")
-        return new_cast
-    else :
-        new_cast = GroupOut(id=2, name="John Wick")
-        return new_cast
+@usergroup.delete('/delete-group/{id}')
+async def delete_group(id: int):
+    group = await db_manager.get_group(id)
+    if not group:
+        raise HTTPException(status_code=404, detail="Group not found")
+    usergroups: List[UserGroup] = await db_manager.get_user_groups_by_id_group(id)
+    if usergroups is None :
+        raise HTTPException(status_code=404, detail="Error Usergroup none")
+    if len(usergroups) > 0 :
+        await db_manager.delete_user_group_by_id_group(id)
+    await db_manager.delete_group(id)
 
+@usergroup.post('/usergroup/')
+async def add_usergroup(payload: UserGroup):
+    if not is_user_present(payload.id_user) :
+        raise HTTPException(status_code=404, detail="User not found")
+    if not await db_manager.isGroupPresent(payload.id_group) :
+        raise HTTPException(status_code=404, detail="Group not found")
+    userGroup = await db_manager.get_user_group(id_user=payload.id_user, id_group=payload.id_group)
+    if not userGroup is None :
+        raise HTTPException(status_code=403, detail="User already a group member")
+    await db_manager.add_user_group(payload)
+
+@usergroup.delete('/usergroup/')
+async def delete_usergroup(payload: UserGroup):
+    usergroup = await db_manager.get_user_group(id_user=payload.id_user, id_group=payload.id_group)
+    if not usergroup:
+        raise HTTPException(status_code=404, detail="User not found in group")
+    await db_manager.delete_user_group(id_user=payload.id_user, id_group=payload.id_group)
+
+@usergroup.get('/usergroups/', response_model=List[UserGroup])
+async def get_usergroups():
+    usergroups = await db_manager.get_all_user_groups()
+    if usergroups is None:
+        raise HTTPException(status_code=404, detail="Failed to retrieve usegroups")
+    return usergroups
+
+@usergroup.get('/usergroups/{id}')
+async def get_usergroups(id: int):
+    usergroups = await db_manager.get_user_groups_by_id_user(id)
+    if usergroups is None:
+        raise HTTPException(status_code=404, detail="Failed to retrieve usegroups")
+    if len(usergroups) > 0 :
+        return True
+    return False
+
+@usergroup.get('/test/')
+async def test_usg():
+    return True
 

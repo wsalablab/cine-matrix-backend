@@ -63,15 +63,14 @@ http://localhost:8080/api/v1/authentication/user/13/
 
 
 
-Movie[id, title, poster, synopsis]
-Genre[id, name]
-Movie_genre[id_movie, id_genre]
-User[name, mail, password_hashed, token, token_exp]
-Movie_watch[id_user, id_movie, id_appreciation, id_mood_after, id_mood_before]
-Appreciation[name]
-Mood[name]
-Group[name]
-User_group[id_group, id_user]
+Movie[id, title, poster, synopsis] oui
+Genre[id, name] oui
+Movie_genre[id_movie, id_genre] oui
+User[name, mail, password_hashed, token, token_exp] oui
+Movie_watch[id_user, id_movie, id_appreciation]
+Appreciation[id, name]
+Group[name] oui
+User_group[id_group, id_user] oui
 
 
 POST 

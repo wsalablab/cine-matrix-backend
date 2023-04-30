@@ -1,6 +1,6 @@
 from typing import List
-from app.api.models import MovieIn, MovieUpdate, GenreIn, GenreUpdate, MovieGenreIn
-from app.api.db import movies, database, genre, movie_genre
+from app.api.models import AppreciationIn, MovieIn, MovieUpdate, GenreIn, GenreUpdate, MovieGenreIn, Appreciation, MovieWatch
+from app.api.db import appreciation, movies, movie_watch, database, genre, movie_genre
 
 
 async def add_movie(payload: MovieIn):
@@ -87,3 +87,56 @@ async def count_movies() -> int:
 async def search_movies(title_in: str):
     query = f"SELECT * FROM movies_tdmb where title like '%{title_in}%'"
     return await database.fetch_all(query=query)
+
+async def add_appreciation(payload: AppreciationIn):
+    query = appreciation.insert().values(**payload.dict())
+    return await database.execute(query=query)
+
+async def get_appreciation(id):
+    query = appreciation.select(appreciation.c.id==id)
+    return await database.fetch_one(query=query)
+
+async def delete_appreciation(id: int):
+    query = appreciation.delete().where(appreciation.c.id==id)
+    return await database.execute(query=query)
+
+async def get_appreciation_by_name(name: str):
+    query = appreciation.select(appreciation.c.name==name)
+    return await database.fetch_one(query=query)
+
+async def add_movie_watch(payload: MovieWatch):
+    query = movie_watch.insert().values(**payload.dict())
+    return await database.execute(query=query)
+
+async def get_movie_watch(id_user: int, id_movie: int):
+    query = movie_watch.select((movie_watch.c.id_user==id_user) and (movie_watch.c.id_movie==id_movie))
+    return await database.fetch_one(query=query)
+
+async def delete_movie_watch(id_user: int, id_movie: int):
+    query = movie_watch.delete().where((movie_watch.c.id_user==id_user) and (movie_watch.c.id_movie==id_movie))
+    return await database.execute(query=query)
+
+async def get_movies_watched_by_user(id_user: int):
+    query = movie_watch.select(movie_watch.c.id_user==id_user)
+    return await database.fetch_all(query=query)
+
+async def get_all_appreciation()-> List[Appreciation]:
+    query = appreciation.select()
+    return await database.fetch_all(query=query)
+
+async def get_all_movie_watch():
+    query = movie_watch.select()
+    return await database.fetch_all(query=query)
+
+async def update_movie_watch(payload: MovieWatch):
+    query = (
+        movie_watch
+        .update()
+        .where((movie_watch.c.id_user == payload.id_user) and (movie_watch.c.id_movie == payload.id_movie))
+        .values(payload.id_appreciation)
+    )
+    return await database.execute(query=query)
+
+#async def delete_movie_watch(id_user: int, id_movie: int):
+#    query = movie_watch.delete().where((movie_watch.c.id_user==id_user) and (movie_watch.c.id_movie==id_movie))
+#    return await database.execute(query=query)

@@ -10,6 +10,9 @@ services:
       - 8001:8000
     environment:
       - DATABASE_URI=postgresql://postgres:postgres@authentication_db/authentication_db_dev
+      - USERGROUP_SERVICE_HOST_URL=http://usergroup_service:8000/api/v1/usergroup/
+      - MOVIE_SERVICE_HOST_URL=http://movie_service:8000/api/v1/movie/
+
 
   authentication_db:
     image: postgres:12.1-alpine
@@ -29,7 +32,7 @@ services:
       - 8002:8000
     environment:
       - DATABASE_URI=postgresql://postgres:postgres@movie_db/movie_db_dev
-      - AUTHENTICATION_SERVICE_HOST_URL=http://authentication_service:8000/api/v1/authentication/
+      - AUTHENTICATION_SERVICE_HOST_URL=http://authentication_service:8000/api/v1/authentication/user/
       - RECOMMENDATION_SERVICE_HOST_URL=http://recommendation_service:8000/api/v1/recommendation/
       - USERGROUP_SERVICE_HOST_URL=http://usergroup_service:8000/api/v1/usergroup/
 
