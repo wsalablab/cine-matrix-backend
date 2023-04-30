@@ -54,6 +54,10 @@ services:
       - 8003:8000
     environment:
       - DATABASE_URI=postgresql://postgres:postgres@recommendation_db/recommendation_db_dev
+      - AUTHENTICATION_SERVICE_HOST_URL=http://authentication_service:8000/api/v1/authentication/
+      - USERGROUP_SERVICE_HOST_URL=http://usergroup_service:8000/api/v1/usergroup/
+      - MOVIE_SERVICE_HOST_URL=http://movie_service:8000/api/v1/movie/
+
 
   recommendation_db:
     image: postgres:12.1-alpine

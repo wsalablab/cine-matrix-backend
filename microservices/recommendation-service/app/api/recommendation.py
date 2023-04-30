@@ -3,6 +3,7 @@ from typing import List
 
 from app.api.models import RecommendationOut, RecommendationIn, RecommendationUpdate
 from app.api import db_manager
+from app.api import service
 
 recommendation = APIRouter()
 
@@ -21,3 +22,16 @@ async def get_recommendation(id: int):
     if not recommendation:
         raise HTTPException(status_code=404, detail="recommendation not found")
     return recommendation
+
+@recommendation.get('/testmovie/')
+async def test_movie():
+    return service.test_movie()
+
+@recommendation.get('/testauthent/')
+async def test_authent():
+    return service.test_authentication()
+
+@recommendation.get('/testusergroup/')
+async def test_usergroup():
+    return service.test_usergroup()
+

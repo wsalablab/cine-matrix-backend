@@ -41,3 +41,7 @@ async def test_usg():
 @authentication.get('/testmovie/')
 async def test_movie():
     return service.test_movie()
+
+@authentication.get('/test/')
+async def test_usg():
+    return True
