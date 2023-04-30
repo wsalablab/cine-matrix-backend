@@ -35,3 +35,10 @@ async def test_authent():
 async def test_usergroup():
     return service.test_usergroup()
 
+@recommendation.get('/recommendation/{id}')
+async def recommendation_movie(id):
+    if not (service.is_group_exist(id)) :
+        raise HTTPException(status_code=404, detail="group not found")
+    
+    
+

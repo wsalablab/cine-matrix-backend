@@ -79,6 +79,13 @@ async def get_usergroups(id: int):
         return True
     return False
 
+@usergroup.get('/usergroups-by-group/{id}')
+async def get_usergroups(id: int):
+    usergroups = await db_manager.get_user_groups_by_id_group(id)
+    if usergroups is None:
+        return []
+    return usergroups
+
 @usergroup.get('/test/')
 async def test_usg():
     return True
