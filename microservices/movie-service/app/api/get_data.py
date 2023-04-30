@@ -3,8 +3,9 @@ from typing import List, Optional
 import requests
 import json
 import pandas as pd
-from models import MovieInGenreNew, GenreInNew, LastMovieInGenre
-
+from models import MovieInGenre, GenreIn
+from databases import Database
+# from app.api import db_manager
 from time import strftime
 # pour récuperer la date du jour 
 print("TIME : " + strftime("%Y/%m/%d"))
@@ -25,38 +26,38 @@ Last_MOVIE_URL = 'https://api.themoviedb.org/3/movie/changes?api_key=' + \
 API_GET_MOVIE_URL = 'https://api.themoviedb.org/3/movie/'
 
 
+
 # Fonction pour récupérer les données de films à partir de l'API
-def get_movie_data_api(url, page) -> List[MovieInGenreNew]:
+def get_movie_data_api(url, page) -> List[MovieInGenre]:
     response = requests.get(url + str(page))
     if response.status_code == 200:
         array = response.json()
         movies = []
         for item in array['results']:
-            # Création d'une instance de MovieInGenreNew à partir des données JSON de l'API
-            movie = MovieInGenreNew(**item)
-            # Récupération des IDs de genres du film
-            movie_genre_ids = movie.get_genre_ids()
+            # Création d'une instance de MovieInGenre à partir des données JSON de l'API
+            movie = MovieInGenre(
+                id_tdmb=item['id'],
+                title=item['title'],
+                poster=item['poster_path'],
+                synopsis=item['overview'],
+                genres=item['genre_ids']
+            )
             # Ajout des données du film dans une liste
-            movies.append({
-                'id': movie.id,
-                'title': movie.title,
-                'poster_path': movie.poster_path,
-                'overview': movie.overview,
-                'genre_ids': movie_genre_ids
-            })
+            movies.append(movie)
         return movies
     else:
         return 'error'
 
+
 # Fonction pour récupérer les données de genres à partir de l'API
-def get_genre_data_api(url) -> List[GenreInNew]:
+def get_genre_data_api(url) -> List[GenreIn]:
     response = requests.get(url)
     if response.status_code == 200:
         array = response.json()
         genres = []
         for item in array['genres']:
-            # Création d'une instance de GenreInNew à partir des données JSON de l'API
-            genre = GenreInNew(**item)
+            # Création d'une instance de GenreIn à partir des données JSON de l'API
+            genre = GenreIn(**item)
             # Ajout des données du genre dans une liste
             genres.append({
                 'id': genre.id,
@@ -78,13 +79,15 @@ def get_last_movie_id(url) -> List[int]:
     else:
         return 'error'
 
+
 # Filtrer les films qui ne sont pas dans la base de données
-def check_movie_ids_not_in_data(movies: List[MovieInGenreNew], movies_id: List[int]) -> List[int]:
+def check_movie_ids_not_in_data(movies: List[MovieInGenre], movies_id: List[int]) -> List[int]:
     # Récupère les ids des films dans la liste movies
-    movie_ids = [movie['id'] for movie in movies]
+    movie_ids = [movie.id_tdmb for movie in movies]
     # Filtre les ids de movies_id qui ne sont pas présents dans movie_ids
     filtered_ids = list(filter(lambda x: x not in movie_ids, movies_id))
     return filtered_ids
+
 
 # Fonction pour écrire les données de films dans un fichier JSON
 def write_file(filename, text):
@@ -104,29 +107,36 @@ def write_file(filename, text):
         print(result)
 
 # Fonction pour récupérer les données de films à partir de l'API
-def get_movie_data_api_by_id(url, movies_id: List) -> List[LastMovieInGenre]:
+def get_movie_data_api_by_id(url: str, movie_ids: List[int]) -> List[dict]:
     movies = []
-    for movie_id in movies_id:
+    for movie_id in movie_ids:
         response = requests.get(url + str(movie_id) + '?api_key=' + API_key + '&language=fr-FR')
-        print(' response.status_code : ' + str(response.status_code))
-        list_id_genres_movies = []
         if response.status_code == 200:
-            print('dans le if')
             array = response.json()
-            movie = LastMovieInGenre(**array)
-
-            movie_genre_ids = movie.get_genre_ids()
-            list_id_genres_movies = [movie_genre_id['id'] for movie_genre_id in movie_genre_ids] 
-
-            movies.append({
-                'id': movie.id,
-                'title': movie.title,
-                'poster_path': movie.poster_path,
-                'overview': movie.overview,
-                'genres' : list_id_genres_movies
-
-            })
+            
+            # Vérification de la validité des champs requis
+            id_tdmb = array.get('id')
+            poster = array.get('poster_path')
+            synopsis = array.get('overview')
+            genres = []
+            if 'genres' in array:
+                for genre in array['genres']:
+                    genre_id = genre.get('id')
+                    if isinstance(genre_id, int):
+                        genres.append(genre_id)
+            
+            # Ajout du film à la liste si les champs sont valides
+            if id_tdmb and isinstance(id_tdmb, int) and poster and synopsis and genres:
+                movie = {
+                    'id_tdmb': id_tdmb,
+                    'title': array.get('title'),
+                    'poster': poster,
+                    'synopsis': synopsis,
+                    'genres': genres
+                }
+                movies.append(movie)
     return movies
+
 
 # Fonction pour récupérer les données de films sur les 100 pages de l'API
 def get_movie_data() -> List:
@@ -153,17 +163,24 @@ def export_data_movie_to_json(movie):
 
 
 
+
 #async def add_movie(payload: MovieInGenreNew):
 #    query = movies.insert().values(**payload.dict())
 #    return await database.execute(query=query)
 
 if __name__ == '__main__':
-    movie = get_movie_data()
-    #add_movie(movie[0])
-    #print(movie)
+    movies = get_movie_data()
+    
+    # -------------------- TODO :: Ajout des données de films dans la base de données  --------------------
+    # J'ai commenté l'import de add_manager
+    #for movie in movies:
+    #    db_manager.add_movie(movie)
 
-    # export_data_movie_to_json(movie) # exporte les données de films dans un fichier JSON 
+    # -------------------- Exporte les données de films dans un fichier JSON   --------------------
+    #export_data_movie_to_json(movies) 
 
-    # main pour vérifier 
-    # new_id = check_movie_ids_not_in_data(movie, get_last_movie_id(Last_MOVIE_URL))
-    # data = get_movie_data_api_by_id(API_GET_MOVIE_URL, new_id)
+    # -------------------- Récupération des ids des dernier films dans la base de données  --------------------
+    #new_id = check_movie_ids_not_in_data(movies, get_last_movie_id(Last_MOVIE_URL))
+
+    # -------------------- Récupération des données de films à partir leur id dans l'API  --------------------
+    #data = get_movie_data_api_by_id(API_GET_MOVIE_URL, new_id)
