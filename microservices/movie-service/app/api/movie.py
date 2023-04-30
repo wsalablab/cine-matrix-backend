@@ -1,9 +1,12 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 
-from app.api.models import AppreciationIn ,MovieIn, MovieUpdate, GenreIn, GenreUpdate, MovieGenreIn, MovieGenreUpdate, MovieInGenre, MovieInUpdate, MovieSearch, MovieWatch, Appreciation
+from app.api.models import AppreciationIn ,MovieIn, MovieUpdate, GenreIn, GenreUpdate, MovieGenreIn, MovieGenreUpdate, MovieInGenre, MovieInUpdate, MovieSearch, MovieWatch, DateInDb, Appreciation
 from app.api import db_manager
 from app.api import service
+from app.api import get_dataa as tmdb
+from time import strftime
+
 
 movie = APIRouter()
 
@@ -308,3 +311,17 @@ async def add_movie_watch(payload: MovieWatch):
     if not movie_watch :
         await db_manager.add_movie_watch(payload)
     
+
+@movie.get('/update_tdmb/')
+async def updateadd_movie_watch_tdmb():
+    movie = tmdb.chech_movie_update()
+    return True
+
+@movie.get('/update_date/')
+async def update_date(payload: DateInDb):
+    date = await db_manager.get_date()
+    if not date:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    else:
+        new_date = DateInDb(**payload)
+        await db_manager.update_movie(new_date)

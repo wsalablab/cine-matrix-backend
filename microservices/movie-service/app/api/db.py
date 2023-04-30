@@ -1,7 +1,7 @@
 
 import os
 
-from sqlalchemy import (Column, ForeignKey, Integer, MetaData, PrimaryKeyConstraint, String, Table, UniqueConstraint,
+from sqlalchemy import (Column, ForeignKey, Integer, MetaData, PrimaryKeyConstraint, String, Table, UniqueConstraint, DATE,
                         create_engine, ARRAY)
 
 from databases import Database
@@ -25,6 +25,14 @@ genre = Table(
     metadata,
     Column('id', Integer, primary_key=True),
     Column('name', String(50)),
+)
+
+date_update = Table(
+    'date_update',
+    metadata,
+    Column('id', Integer, primary_key=True),
+    Column('date', DATE),
+
 )
 
 movie_genre = Table(

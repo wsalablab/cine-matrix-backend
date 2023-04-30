@@ -1,6 +1,6 @@
 from typing import List
-from app.api.models import AppreciationIn, MovieIn, MovieUpdate, GenreIn, GenreUpdate, MovieGenreIn, Appreciation, MovieWatch
-from app.api.db import appreciation, movies, movie_watch, database, genre, movie_genre
+from app.api.models import AppreciationIn, MovieIn, MovieUpdate, GenreIn, GenreUpdate, MovieGenreIn, Appreciation, MovieWatch, DateInDb
+from app.api.db import appreciation, movies, movie_watch, database, genre, movie_genre, date_update
 
 
 async def add_movie(payload: MovieIn):
@@ -11,6 +11,7 @@ async def get_movie(id):
     query = movies.select(movies.c.id_tdmb==id)
     return await database.fetch_one(query=query)
 
+
 async def delete_movie(id: int):
     query = movies.delete().where(movies.c.id_tdmb==id)
     return await database.execute(query=query)
@@ -20,6 +21,15 @@ async def update_movie(id: int, payload: MovieUpdate):
         movies
         .update()
         .where(movies.c.id_tdmb == id)
+        .values(**payload.dict(exclude_unset=True))
+    )
+    return await database.execute(query=query)
+
+async def update_date(payload: DateInDb):
+    query = (
+        movies
+        .update()
+        .where(date_update.c.id == 1)
         .values(**payload.dict(exclude_unset=True))
     )
     return await database.execute(query=query)
@@ -59,6 +69,10 @@ async def get_movie_genre_by_movie(id_movie):
 #OK
 async def get_all_moviesss():
     query = movies.select()
+    return await database.fetch_all(query=query)
+
+async def get_date():
+    query = date_update.select()
     return await database.fetch_all(query=query)
 
 async def get_all_genresss():
